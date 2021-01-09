@@ -1,1 +1,1 @@
-zip test.zip -r ./photos
+zip -r - ./photos
