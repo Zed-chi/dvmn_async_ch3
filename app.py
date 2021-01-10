@@ -1,19 +1,26 @@
-from zipfile import ZipFile
-import subprocess
+import asyncio
 import datetime
+import subprocess
+from zipfile import ZipFile
+
 
 def archivate():
-    program = "zip_file.sh"
-    process = subprocess.call(program)
-    return process.stdout
- 
-print(process.stdout) # 0
+    process = subprocess.Popen(["bash", "zip_files.sh"], stdout=subprocess.PIPE)
+    return process.stdout.read()
 
-import asyncio
+async def async_archivate(cmd=None):
+    if not cmd:
+        cmd = ["bash", "zip_files.sh"]
 
-async def main():
-    print('hello')
-    await asyncio.sleep(1)
-    print('world')
+    proc = await asyncio.create_subprocess_exec(
+        "bash","zip_files.sh",
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
+    )
 
-asyncio.run(main())
+    stdout, _ = await proc.communicate()
+    return stdout
+    
+
+if __name__ == "__main__":
+    asyncio.run(async_archivate())
