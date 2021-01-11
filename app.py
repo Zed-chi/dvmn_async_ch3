@@ -1,12 +1,13 @@
 import asyncio
 import datetime
 import subprocess
+import sys
 from zipfile import ZipFile
 
 
 def archivate():
     process = subprocess.Popen(["bash", "zip_files.sh"], stdout=subprocess.PIPE)
-    return process.stdout.read()
+    sys.stdout.write(process.stdout.read())
 
 async def async_archivate(cmd=None):
     if not cmd:
@@ -17,9 +18,11 @@ async def async_archivate(cmd=None):
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE
     )
-
-    stdout, _ = await proc.communicate()
-    return stdout
+    while True:        
+        chunk = proc.stdout.read(100000)
+        if not chunk:
+            break
+        sys.stdout.write(chunk)        
     
 
 if __name__ == "__main__":
