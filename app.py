@@ -19,10 +19,10 @@ async def async_archivate(cmd=None):
         stderr=asyncio.subprocess.PIPE
     )
     while True:        
-        chunk = proc.stdout.read(100000)
+        chunk = await proc.stdout.read(100000)
         if not chunk:
             break
-        sys.stdout.write(chunk)        
+        sys.stdout.buffer.write(chunk)        
     
 
 if __name__ == "__main__":
