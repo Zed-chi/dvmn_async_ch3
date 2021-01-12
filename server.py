@@ -8,11 +8,11 @@ import os
 async def archivate(request):
     name = request.match_info.get("archive_hash", None)
     if not name:
-        return
+        raise web.HTTPBadRequest(text="Empty archive _hash")
     path = os.path.join(".", "test_photos", name)
 
     if not os.path.exists(path):
-        return
+        raise web.HTTPNotFound(text="Архив не найден или удален.")
     response = web.StreamResponse(
         status=200,
         reason="OK",
