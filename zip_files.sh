@@ -1,2 +1,3 @@
 #!/bin/sh
-zip -r - ./photos
+PATH1=$1
+zip -r -j - $PATH1
