@@ -2,12 +2,36 @@ from aiohttp import web
 import asyncio
 import datetime
 import aiofiles
-
-INTERVAL_SECS = 1
+import os
 
 
 async def archivate(request):
-    pass
+    archive_name = request.match_info.get('archive_hash', None)
+    if not archive_name:
+        return     
+    path = os.path.join(os.getcwd(), "test_photos", archive_name)
+    if not os.path.exists(path):
+        return     
+    
+    response = web.StreamResponse(
+        status=200,
+        reason='OK',
+        headers={'Content-Type': 'text/html', "X-Content-Type-Options": "nosniff", "charset":"utf8"},
+    )
+    await response.prepare(request)
+
+    proc = await asyncio.create_subprocess_exec(
+        f"zip -r - {path}",
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE
+    )
+    while True:        
+        chunk = await proc.stdout.read(100000)
+        if not chunk:
+            break
+        await response.write(chunk)
+    
+    return response
 
 
 async def handle_index_page(request):
@@ -36,8 +60,8 @@ if __name__ == "__main__":
     app.add_routes(
         [
             web.get("/", handle_index_page),
-            web.get("/archive/7kna/", uptime_handler),
-            # web.get('/archive/{archive_hash}/', archivate),
+            #web.get("/archive/7kna/", uptime_handler),
+            web.get('/archive/{archive_hash}/', archivate),
         ]
     )
     web.run_app(app)
