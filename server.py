@@ -5,43 +5,39 @@ import aiofiles
 
 INTERVAL_SECS = 1
 
+
 async def archivate(request):
     pass
 
 
 async def handle_index_page(request):
-    async with aiofiles.open('index.html', mode='r') as index_file:
+    async with aiofiles.open("index.html", mode="r", encoding="utf-8") as index_file:
         index_contents = await index_file.read()
-    return web.Response(text=index_contents, content_type='text/html')
+    return web.Response(text=index_contents, content_type="text/html")
 
 
 async def uptime_handler(request):
     
-    response = web.StreamResponse()
+    response = web.StreamResponse(
+        status=200,
+        reason='OK',
+        headers={'Content-Type': 'text/html', "X-Content-Type-Options": "nosniff", "charset":"utf8"},
+    )
+    await response.prepare(request)    
 
-    # Большинство браузеров не отрисовывают частично загруженный контент, только если это не HTML.
-    # Поэтому отправляем клиенту именно HTML, указываем это в Content-Type.
-    response.headers['Content-Type'] = 'text/html'
-
-    # Отправляет клиенту HTTP заголовки
-    await response.prepare(request)
-
-    while True:
-        formatted_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        message = f'{formatted_date}<br>'  # <br> — HTML тег переноса строки
-
-        # Отправляет клиенту очередную порцию ответа
-        await response.write(message.encode('utf-8'))
-
-        await asyncio.sleep(INTERVAL_SECS)
+    
+    for i in range(10):
+        await response.write(f"text {i}\n".encode("utf-8"))
+        await asyncio.sleep(1)    
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = web.Application()
-    app.add_routes([
-        web.get('/', handle_index_page),
-        web.get('/archive/7kna/', uptime_handler),
-        #web.get('/archive/{archive_hash}/', archivate),        
-    ])
+    app.add_routes(
+        [
+            web.get("/", handle_index_page),
+            web.get("/archive/7kna/", uptime_handler),
+            # web.get('/archive/{archive_hash}/', archivate),
+        ]
+    )
     web.run_app(app)
