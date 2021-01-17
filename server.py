@@ -1,29 +1,37 @@
-import asyncio
+import argparse
 import aiofiles
+import asyncio
 import logging
 import os
-import sys
 from aiohttp import web
-from config import get_args
 
 
-ARGS = get_args()
-if ARGS.logging:
-    logging.basicConfig(filename="server.log", level=logging.INFO)
-else:
-    logging.basicConfig(filename="server.log", level=logging.WARNING)
+def get_args():
+    parser = argparse.ArgumentParser(description="Image Archiver Service")
+    parser.add_argument(
+        "-l", action="store_true", dest="lot", help="turn log on/off"
+    )
+    parser.add_argument(
+        "--delay",
+        default=0,
+        type=int,
+        help="delay between response in seconds",
+    )
+    parser.add_argument("--path", default="photos", help="path to photos dir")
+    args = parser.parse_args()
+    return args
 
 
 async def archivate(request):
-    logger.info("zipper started")
+    logging.info("zipper started")
     name = request.match_info.get("archive_hash", None)
     if not name:
-        logger.error("can't get archive hash")
+        logging.error("can't get archive hash")
         raise web.HTTPBadRequest(text="Can't get archive hash")
     path = os.path.join(".", ARGS.path, name)
 
     if not os.path.exists(path):
-        logger.error("archive not found")
+        logging.error("archive not found")
         raise web.HTTPNotFound(text="Archive not found")
     response = web.StreamResponse(
         status=200,
@@ -46,18 +54,18 @@ async def archivate(request):
         while True:
             chunk = await proc.stdout.read(100000)
             if not chunk:
-                break            
+                break
             await response.write(chunk)
             await asyncio.sleep(ARGS.delay)
-        logger.info("archive sended")
+        logging.info("archive sended")
         return response
-    except (BaseException, CancelledError) as e:
-        logger.error(f"some {e.__class__.__name__} was done")                
+    except (BaseException, asyncio.CancelledError) as e:
+        logging.error(f"some {e.__class__.__name__} was done")
         proc.terminate()
         a, b = await proc.communicate()
-        logger.error("process terminated")
+        logging.error("process terminated")
     finally:
-        logger.info("request finished")        
+        logging.info("request finished")
     return response
 
 
@@ -69,7 +77,13 @@ async def handle_index_page(request):
     return web.Response(text=index_contents, content_type="text/html")
 
 
-if __name__ == "__main__":            
+if __name__ == "__main__":
+    ARGS = get_args()
+    if ARGS.logging:
+        logging.basicConfig(filename="server.log", level=logging.INFO)
+    else:
+        logging.basicConfig(filename="server.log", level=logging.WARNING)
+
     app = web.Application()
     app.add_routes(
         [

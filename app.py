@@ -1,7 +1,6 @@
 import asyncio
 import subprocess
 import sys
-from zipfile import ZipFile
 
 
 def archivate():
