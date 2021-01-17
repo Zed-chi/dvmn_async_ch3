@@ -9,13 +9,24 @@ from aiohttp import web
 def get_args():
     parser = argparse.ArgumentParser(description="Image Archiver Service")
     parser.add_argument(
-        "-l", action="store_true", dest="lot", help="turn log on/off"
+        "-l", action="store_true", dest="logging", help="turn log on/off"
     )
     parser.add_argument(
         "--delay",
         default=0,
         type=int,
         help="delay between response in seconds",
+    )
+    parser.add_argument(
+        "--host",
+        default="127.0.0.1",        
+        help="host of the server",
+    )
+    parser.add_argument(
+        "--port",
+        default=10000,
+        type=int,
+        help="port of the server",
     )
     parser.add_argument("--path", default="photos", help="path to photos dir")
     args = parser.parse_args()
@@ -79,6 +90,7 @@ async def handle_index_page(request):
 
 if __name__ == "__main__":
     ARGS = get_args()
+    print(ARGS)
     if ARGS.logging:
         logging.basicConfig(filename="server.log", level=logging.INFO)
     else:
@@ -91,4 +103,4 @@ if __name__ == "__main__":
             web.get("/archive/{archive_hash}/", archivate),
         ]
     )
-    web.run_app(app)
+    web.run_app(app, host=ARGS.host, port=ARGS.port)
