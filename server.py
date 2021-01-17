@@ -88,9 +88,15 @@ async def handle_index_page(request):
     return web.Response(text=index_contents, content_type="text/html")
 
 
+def init(path):
+    path = os.path.join(".", path)
+    if not os.path.exists(path):
+        os.makedirs(path)
+
 if __name__ == "__main__":
     ARGS = get_args()
-    print(ARGS)
+    init(ARGS.path)
+    
     if ARGS.logging:
         logging.basicConfig(filename="server.log", level=logging.INFO)
     else:
