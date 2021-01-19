@@ -9,4 +9,4 @@ services:
     volumes:
       - ./:/app:Z
     command: >
-      sh -c "python3.9 server.py -l"
+      sh -c "python3.9 server.py"
