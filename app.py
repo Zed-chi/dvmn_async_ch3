@@ -3,20 +3,18 @@ import subprocess
 import sys
 
 
-def archivate():
+def archivate(path):
     process = subprocess.Popen(
-        ["bash", "zip_files.sh"], stdout=subprocess.PIPE
+        ["bash", "zip_files.sh", path], stdout=subprocess.PIPE
     )
-    sys.stdout.write(process.stdout.read())
+    sys.stdout.buffer.write(process.stdout.read())
 
 
-async def async_archivate(cmd=None):
-    if not cmd:
-        cmd = ["bash", "zip_files.sh"]
-
+async def async_archivate(path):
     proc = await asyncio.create_subprocess_exec(
         "bash",
         "zip_files.sh",
+        path,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
@@ -28,4 +26,6 @@ async def async_archivate(cmd=None):
 
 
 if __name__ == "__main__":
-    asyncio.run(async_archivate())
+    path = sys.argv[1]
+    asyncio.run(async_archivate(path))
+    # archivate(path)
