@@ -1,15 +1,19 @@
 import argparse
-import aiofiles
 import asyncio
 import logging
 import os
+
+import aiofiles
 from aiohttp import web
 
 
 def get_args():
     parser = argparse.ArgumentParser(description="Image Archiver Service")
     parser.add_argument(
-        "-l", action="store_true", dest="logging", help="turn log on/off"
+        "-l",
+        action="store_true",
+        dest="logging",
+        help="turn log on/off",
     )
     parser.add_argument(
         "--delay",
@@ -19,7 +23,7 @@ def get_args():
     )
     parser.add_argument(
         "--host",
-        default="127.0.0.1",        
+        default="0.0.0.0",
         help="host of the server",
     )
     parser.add_argument(
@@ -28,13 +32,24 @@ def get_args():
         type=int,
         help="port of the server",
     )
-    parser.add_argument("--path", default="photos", help="path to photos dir")
+    parser.add_argument(
+        "--chunk_size",
+        default=250000,
+        type=int,
+        help="chunk size to send in loop",
+    )
+    parser.add_argument(
+        "--path",
+        default="test_photos",
+        help="path to photos dir",
+    )
     args = parser.parse_args()
     return args
 
 
 async def archivate(request):
     logging.info("zipper started")
+
     name = request.match_info.get("archive_hash", None)
     if not name:
         logging.error("can't get archive hash")
@@ -63,16 +78,14 @@ async def archivate(request):
     )
     try:
         while True:
-            chunk = await proc.stdout.read(100000)
+            chunk = await proc.stdout.read(ARGS.chunk_size)
             if not chunk:
                 break
             await response.write(chunk)
             await asyncio.sleep(ARGS.delay)
         logging.info("archive sended")
-        return response
     except (BaseException, asyncio.CancelledError) as e:
-        logging.error(f"some {e.__class__.__name__} was done")
-        proc.terminate()
+        logging.error(e)
         a, b = await proc.communicate()
         logging.error("process terminated")
     finally:
@@ -82,7 +95,9 @@ async def archivate(request):
 
 async def handle_index_page(request):
     async with aiofiles.open(
-        "index.html", mode="r", encoding="utf-8"
+        "index.html",
+        mode="r",
+        encoding="utf-8",
     ) as index_file:
         index_contents = await index_file.read()
     return web.Response(text=index_contents, content_type="text/html")
@@ -93,10 +108,11 @@ def init(path):
     if not os.path.exists(path):
         os.makedirs(path)
 
+
 if __name__ == "__main__":
     ARGS = get_args()
     init(ARGS.path)
-    
+
     if ARGS.logging:
         logging.basicConfig(filename="server.log", level=logging.INFO)
     else:
@@ -107,6 +123,7 @@ if __name__ == "__main__":
         [
             web.get("/", handle_index_page),
             web.get("/archive/{archive_hash}/", archivate),
-        ]
+        ],
     )
+
     web.run_app(app, host=ARGS.host, port=ARGS.port)
