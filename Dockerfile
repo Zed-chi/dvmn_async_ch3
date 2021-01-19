@@ -6,6 +6,7 @@ RUN apk add libc-dev
 RUN apk add gcc
 RUN apk add bash
 RUN apk add zip
+RUN apk add htop
 RUN python3.9 -m pip install --upgrade pip
 RUN pip3.9 install -r /requirements.txt
 RUN mkdir /app
