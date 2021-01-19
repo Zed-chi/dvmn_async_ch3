@@ -9,4 +9,4 @@ services:
     volumes:
       - ./:/app:Z
     command: >
-      sh -c "python3.9 server.py --path test_photos -l"
+      sh -c "python3.9 server.py -l"
