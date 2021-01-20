@@ -54,7 +54,7 @@ async def archivate(request):
     if not name:
         logging.error("can't get archive hash")
         raise web.HTTPBadRequest(text="Can't get archive hash")
-    path = os.path.join(".", ARGS.path, name)
+    path = os.path.join(".", args.path, name)
 
     if not os.path.exists(path):
         logging.error("archive not found")
@@ -78,11 +78,11 @@ async def archivate(request):
     )
     try:
         while True:
-            chunk = await proc.stdout.read(ARGS.chunk_size)
+            chunk = await proc.stdout.read(args.chunk_size)
             if not chunk:
                 break
             await response.write(chunk)
-            await asyncio.sleep(ARGS.delay)
+            await asyncio.sleep(args.delay)
         logging.info("archive sended")
     except (BaseException, asyncio.CancelledError) as e:
         logging.error(e)
@@ -110,10 +110,10 @@ def init(path):
 
 
 if __name__ == "__main__":
-    ARGS = get_args()
-    init(ARGS.path)
+    args = get_args()
+    init(args.path)
 
-    if ARGS.logging:
+    if args.logging:
         logging.basicConfig(filename="server.log", level=logging.INFO)
     else:
         logging.basicConfig(filename="server.log", level=logging.WARNING)
@@ -126,4 +126,4 @@ if __name__ == "__main__":
         ],
     )
 
-    web.run_app(app, host=ARGS.host, port=ARGS.port)
+    web.run_app(app, host=args.host, port=args.port)
