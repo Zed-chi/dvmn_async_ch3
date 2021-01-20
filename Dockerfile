@@ -1,16 +1,8 @@
-FROM python:3.9-alpine
+FROM python:3.9-slim-buster
 ENV PYTHONUNBUFFERED 1
-COPY ./requirements.txt /requirements.txt
-RUN apk update
-RUN apk add libc-dev
-RUN apk add gcc
-RUN apk add bash
-RUN apk add zip
-RUN apk add htop
-RUN python3.9 -m pip install --upgrade pip
-RUN pip3.9 install -r /requirements.txt
 RUN mkdir /app
 WORKDIR /app
 COPY . ./app
-RUN adduser -D user
-USER user
+RUN apt update &&\
+    apt install -y libc-dev gcc bash zip htop &&\
+    pip3 install -r ./app/requirements.txt
