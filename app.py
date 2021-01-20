@@ -27,5 +27,4 @@ async def async_archivate(path):
 
 if __name__ == "__main__":
     path = sys.argv[1]
-    asyncio.run(async_archivate(path))
-    # archivate(path)
+    asyncio.run(async_archivate(path))    
